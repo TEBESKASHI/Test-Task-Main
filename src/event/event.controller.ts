@@ -2,25 +2,30 @@ import { Controller } from '@nestjs/common';
 import { EventPattern, MessagePattern } from '@nestjs/microservices';
 import { CreateEventDto } from './dto/create-event.dto';
 import { EventService } from './event.service';
+import { EventTransportChannel } from './enum';
+import { EventEntity } from './event.entity';
 
 @Controller()
 export class EventController {
   constructor(private readonly eventService: EventService) {}
 
-  @MessagePattern('event-all')
-  getAllEvents() {
+  @MessagePattern(EventTransportChannel.EVENT_ALL)
+  getAllEvents(): Promise<EventEntity[]> {
     return this.eventService.findAll();
   }
-  @MessagePattern('event-by-id')
-  getEventById(id: number) {
+
+  @MessagePattern(EventTransportChannel.EVENT_BY_ID)
+  getEventById(id: number): Promise<EventEntity> {
     return this.eventService.findById(id);
   }
-  @EventPattern('event-create')
-  async createNewEvent(event: CreateEventDto) {
-    this.eventService.create(event);
+
+  @EventPattern(EventTransportChannel.EVENT_CREATE)
+  createNewEvent(event: CreateEventDto): Promise<boolean> {
+    return this.eventService.create(event);
   }
-  @EventPattern('event-delete')
-  async deleteEvent(id: number) {
-    this.eventService.delete(id);
+
+  @EventPattern(EventTransportChannel.EVENT_DELETE)
+  async deleteEvent(id: number): Promise<void> {
+    return this.eventService.delete(id);
   }
 }

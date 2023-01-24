@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { CreateEventDto } from './dto/create-event.dto';
 import { EventEntity } from './event.entity';
 import { publisher, RedisChannels } from '../redis';
+
 @Injectable()
 export class EventService {
   constructor(
@@ -19,15 +20,15 @@ export class EventService {
     return this.eventRepository.findOneBy({ id });
   }
 
-  async create(event: CreateEventDto): Promise<void> {
+  async create(event: CreateEventDto): Promise<boolean> {
     const { name, description, type } = event;
     try {
       await this.eventRepository.insert({ name, description, type });
       await publisher.publish(RedisChannels.EVENT_CREATED, type);
     } catch (e) {
-      console.log(e);
+      return false;
     }
-    return;
+    return true;
   }
 
   async delete(id: number): Promise<void> {
